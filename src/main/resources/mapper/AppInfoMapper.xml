@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ncu.appstore.dao.AppInfoMapper">
+    <!-- app_info表所有字段信息 -->
+    <sql id="appInfoColumns">
+          a.id,
+          a.softwareName,
+          a.APKName,
+          a.supportROM,
+          a.interfaceLanguage,
+          a.softWareSize,
+          a.updateDate,
+          a.devId,
+          a.appInfo,
+          a.status,
+          a.onSaleDate,
+          a.offSaleDate,
+          a.floatFormId,
+          a.categoryLevel1,
+          a.categoryLevel2,
+          a.categoryLevel3,
+          a.downloads,
+          a.createBy,
+          a.creationDate,
+          a.modifyBy,
+          a.modifyDate,
+          a.logoLocPath,
+          a.versionId,
+          a.logoWebPath,
+          dev.`devName`,
+          app1.`categoryName` AS cat1,
+          app1.`parentId` AS parent1,
+          app2.`categoryName` cat2,
+          app2.`parentId` AS parent2,
+          app3.`categoryName` cat3,
+          app3.`parentId` AS parent3,
+          data_status.`valueName` AS statusValue,
+          data_floatformid.`valueName` AS floatformValue,
+          ver.versionNo,
+          ver.versionInfo,
+          ver.versionSize
+    </sql>
+    <!-- appInfo表结果映射 -->
+    <resultMap id="appInfoMap" type="AppInfo">
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="softwareName" property="softwarename"/>
+        <result column="APKName" property="apkname"/>
+        <result column="supportROM" property="supportrom"/>
+        <result column="interfaceLanguage" property="interfacelanguage"/>
+        <result column="softWareSize" property="softwaresize"/>
+        <result column="appInfo" property="appinfo"/>
+        <result column="downloads" property="downloads"/>
+        <result column="logoWebPath" property="logowebpath"/>
+        <association property="appversion" javaType="AppVersion">
+            <id column="versionID" property="id"/>
+            <result column="versionNo" property="versionno"/>
+            <result column="versionSize" property="versionsize"/>
+            <result column="APKName" property="apkfilename"/>
+        </association>
+        <association property="devUser" javaType="DevUser">
+            <id column="devId" jdbcType="BIGINT" property="id"/>
+            <result column="devName" property="devname"/>
+        </association>
+        <association property="status" javaType="DataDictionary">
+            <id column="status" jdbcType="BIGINT" property="id"/>
+            <result column="statusValue" property="valuename"/>
+        </association>
+        <association property="floatformid" javaType="DataDictionary">
+            <id column="floatFormId" jdbcType="BIGINT" property="id"/>
+            <result column="floatformValue" property="valuename"/>
+        </association>
+        <association property="categorylevel1" javaType="AppCategory">
+            <id column="categoryLevel1" jdbcType="BIGINT" property="id"/>
+            <result column="cat1" property="categoryname"/>
+            <result column="parent1" property="parentid"/>
+        </association>
+        <association property="categorylevel2" javaType="AppCategory">
+            <id column="categoryLevel2" jdbcType="BIGINT" property="id"/>
+            <result column="cat2" property="categoryname"/>
+            <result column="parent2" property="parentid"/>
+        </association>
+        <association property="categorylevel3" javaType="AppCategory">
+            <id column="categoryLevel3" jdbcType="BIGINT" property="id"/>
+            <result column="cat3" property="categoryname"/>
+            <result column="parent3" property="parentid"/>
+        </association>
+    </resultMap>
+
+    <select id="page" resultMap="appInfoMap" parameterType="java.util.Map">
+        SELECT
+        <include refid="appInfoColumns"/>
+        FROM
+        app_info AS a
+        LEFT JOIN dev_user AS dev ON a.devId = dev.id
+        LEFT JOIN data_dictionary AS data_status ON a.`status` = data_status.id
+        LEFT JOIN data_dictionary AS data_floatformid ON a.`floatFormId` = data_floatformid.id
+        LEFT JOIN app_category AS app1 ON a.`categoryLevel1` = app1.`id`
+        LEFT JOIN app_category AS app2 ON a.`categoryLevel2` = app2.`id`
+        LEFT JOIN app_category AS app3 ON a.`categoryLevel3` = app3.`id`
+        LEFT JOIN app_version AS ver ON a.versionId = ver.id
+        <where>
+            <if test="pageParams.softwarename != null and pageParams.softwarename != ''">
+                AND a.softwareName LIKE CONCAT('%',#{pageParams.softwarename},'%')
+            </if>
+            <if test="pageParams.status != null and pageParams.status.id != ''">
+                AND a.status = #{pageParams.status.id}
+            </if>
+            <if test="pageParams.floatformid != null and pageParams.floatformid.id != ''">
+                AND a.floatformid = #{pageParams.floatformid.id}
+            </if>
+            <if test="pageParams.categorylevel1 != null and pageParams.categorylevel1.id != ''">
+                AND a.categoryLevel1 = #{pageParams.categorylevel1.id}
+            </if>
+            <if test="pageParams.categorylevel2 != null and pageParams.categorylevel2.id != ''">
+                AND a.categoryLevel2 = #{pageParams.categorylevel2.id}
+            </if>
+            <if test="pageParams.categorylevel3 != null and pageParams.categorylevel3.id != ''">
+                AND a.categoryLevel3 = #{pageParams.categorylevel3.id}
+            </if>
+            AND a.devId = #{devId}
+        </where>
+        LIMIT #{start}, #{length}
+    </select>
+
+    <select id="findAllToCheck" resultMap="appInfoMap">
+        SELECT
+        <include refid="appInfoColumns"/>
+        FROM
+        app_info AS a
+        LEFT JOIN dev_user AS dev ON a.devId = dev.id
+        LEFT JOIN data_dictionary AS data_status ON a.`status` = data_status.id
+        LEFT JOIN data_dictionary AS data_floatformid ON a.`floatFormId` = data_floatformid.id
+        LEFT JOIN app_category AS app1 ON a.`categoryLevel1` = app1.`id`
+        LEFT JOIN app_category AS app2 ON a.`categoryLevel2` = app2.`id`
+        LEFT JOIN app_category AS app3 ON a.`categoryLevel3` = app3.`id`
+        LEFT JOIN app_version AS ver ON a.versionId = ver.id
+        <where>
+            AND  data_status.valueName="待审核"
+        </where>
+    </select>
+    <select id="search" resultMap="appInfoMap" parameterType="java.util.Map">
+        SELECT
+        <include refid="appInfoColumns"/>
+        FROM
+        app_info AS a
+        LEFT JOIN dev_user AS dev ON a.devId = dev.id
+        LEFT JOIN data_dictionary AS data_status ON a.`status` = data_status.id
+        LEFT JOIN data_dictionary AS data_floatformid ON a.`floatFormId` = data_floatformid.id
+        LEFT JOIN app_category AS app1 ON a.`categoryLevel1` = app1.`id`
+        LEFT JOIN app_category AS app2 ON a.`categoryLevel2` = app2.`id`
+        LEFT JOIN app_category AS app3 ON a.`categoryLevel3` = app3.`id`
+        LEFT JOIN app_version AS ver ON a.versionId = ver.id
+        <where>
+            <if test="softwarename != null and softwarename != ''">
+                AND a.softwareName LIKE CONCAT('%',#{softwarename},'%')
+            </if>
+
+            <if test="floatformid != null and floatformid != ''">
+                AND a.floatformid = #{floatformid}
+            </if>
+            <if test="categorylevel1 != null and categorylevel1 != ''">
+                AND a.categoryLevel1 = #{categorylevel1}
+            </if>
+            <if test="categorylevel2 != null and categorylevel2 != ''">
+                AND a.categoryLevel2 = #{categorylevel2}
+            </if>
+            <if test="categorylevel3 != null and categorylevel3 != ''">
+                AND a.categoryLevel3 = #{categorylevel3}
+            </if>
+
+        </where>
+    </select>
+    <select id="count" parameterType="java.util.Map" resultType="java.lang.Integer">
+        SELECT COUNT(a.id)
+        FROM
+        app_info AS a
+        LEFT JOIN dev_user AS dev ON a.devId = dev.id
+        LEFT JOIN data_dictionary AS data_status ON a.`status` = data_status.id
+        LEFT JOIN data_dictionary AS data_floatformid ON a.`floatFormId` = data_floatformid.id
+        LEFT JOIN app_category AS app1 ON a.`categoryLevel1` = app1.`id`
+        LEFT JOIN app_category AS app2 ON a.`categoryLevel2` = app2.`id`
+        LEFT JOIN app_category AS app3 ON a.`categoryLevel3` = app3.`id`
+        LEFT JOIN app_version AS ver ON a.versionId = ver.id
+        <where>
+            <if test="pageParams.softwarename != null and pageParams.softwarename != ''">
+                AND a.softwareName LIKE CONCAT('%',#{pageParams.softwarename},'%')
+            </if>
+            <if test="pageParams.status != null and pageParams.status.id != ''">
+                AND a.status = #{pageParams.status.id}
+            </if>
+            <if test="pageParams.floatformid != null and pageParams.floatformid.id != ''">
+                AND a.floatformid = #{pageParams.floatformid.id}
+            </if>
+            <if test="pageParams.categorylevel1 != null and pageParams.categorylevel1.id != ''">
+                AND a.categoryLevel1 = #{pageParams.categorylevel1.id}
+            </if>
+            <if test="pageParams.categorylevel2 != null and pageParams.categorylevel2.id != ''">
+                AND a.categoryLevel2 = #{pageParams.categorylevel2.id}
+            </if>
+            <if test="pageParams.categorylevel3 != null and pageParams.categorylevel3.id != ''">
+                AND a.categoryLevel3 = #{pageParams.categorylevel3.id}
+            </if>
+            AND a.devId = #{devId}
+        </where>
+    </select>
+    <insert id="insert" parameterType="AppInfo">
+        INSERT INTO app_info (
+          `softwareName`,
+          `APKName`,
+          `supportROM`,
+          `interfaceLanguage`,
+          `softWareSize`,
+          `updateDate`,
+          `devId`,
+          `appInfo`,
+          `status`,
+          `onSaleDate`,
+          `offSaleDate`,
+          `floatFormId`,
+          `categoryLevel3`,
+          `downloads`,
+          `createBy`,
+          `creationDate`,
+          `modifyBy`,
+          `modifyDate`,
+          `categoryLevel1`,
+          `categoryLevel2`,
+          `logoLocPath`,
+          `versionId`,
+          `logoWebPath`
+        )
+        VALUES
+          (
+            #{softwarename},
+            #{apkname},
+            #{supportrom},
+            #{interfacelanguage},
+            #{softwaresize},
+            #{updatedate},
+            #{devUser.id},
+            #{appinfo},
+            #{status.id},
+            #{onsaledate},
+            #{offsaledate},
+            #{floatformid.id},
+            #{categorylevel3.id},
+            #{downloads},
+            #{createby},
+            #{creationdate},
+            #{modifyby},
+            #{modifydate},
+            #{categorylevel1.id},
+            #{categorylevel2.id},
+            #{logolocpath},
+            #{appversion.id},
+            #{logowebpath}
+          )
+    </insert>
+    <select id="getAppInfoById" resultMap="appInfoMap">
+        SELECT
+        <include refid="appInfoColumns"/>
+        FROM
+        app_info AS a
+        LEFT JOIN dev_user AS dev ON a.devId = dev.id
+        LEFT JOIN data_dictionary AS data_status ON a.`status` = data_status.id
+        LEFT JOIN data_dictionary AS data_floatformid ON a.`floatFormId` = data_floatformid.id
+        LEFT JOIN app_category AS app1 ON a.`categoryLevel1` = app1.`id`
+        LEFT JOIN app_category AS app2 ON a.`categoryLevel2` = app2.`id`
+        LEFT JOIN app_category AS app3 ON a.`categoryLevel3` = app3.`id`
+        LEFT JOIN app_version AS ver ON a.versionId = ver.id
+        WHERE a.id = #{id}
+    </select>
+    <update id="update">
+        UPDATE
+          app_info
+        SET
+          `softwareName` = #{softwarename},
+          `APKName` = #{apkname},
+          `supportROM` = #{supportrom},
+          `interfaceLanguage` = #{interfacelanguage},
+          `softWareSize` = #{softwaresize},
+          `updateDate` = #{updatedate},
+          `devId` = #{devUser.id},
+          `appInfo` = #{appinfo},
+          `status` = #{status.id},
+          `onSaleDate` = #{onsaledate},
+          `offSaleDate` = #{offsaledate},
+          `floatFormId` = #{floatformid.id},
+          `categoryLevel3` = #{categorylevel3.id},
+          `downloads` = #{downloads},
+          `createBy` = #{createby},
+          `creationDate` = #{creationdate},
+          `modifyBy` = #{modifyby},
+          `modifyDate` = #{modifydate},
+          `categoryLevel1` = #{categorylevel1.id},
+          `categoryLevel2` = #{categorylevel2.id},
+          `logoLocPath` = #{logolocpath},
+          `versionId` = #{appversion.id},
+          `logoWebPath` = #{logowebpath}
+        WHERE `id` = #{id}
+    </update>
+    <select id="countAppInfoByApkName" resultType="Integer">
+        SELECT
+            COUNT(1)
+        FROM app_info AS a
+        WHERE a.APKName = #{apkname}
+    </select>
+    <update id="updateVersion">
+        UPDATE
+          app_info
+        SET
+          versionId = #{versionId},
+        WHERE id = #{id}
+    </update>
+    <update id="onSale">
+        UPDATE
+          app_info
+        SET
+          status = #{statusId},
+          onSaleDate = #{onSaleDate}
+        WHERE id = #{id}
+    </update>
+    <update id="offSale">
+        UPDATE
+          app_info
+        SET
+          status = #{statusId},
+          offSaleDate = #{offSaleDate}
+        WHERE id = #{id}
+    </update>
+</mapper>

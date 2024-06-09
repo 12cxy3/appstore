@@ -1,0 +1,17 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\src",
+    "\\src\\main\\webapp",
+    "\\src\\main\\webapp\\WEB-INF",
+    "\\src\\main\\webapp\\WEB-INF\\jsp\\backend",
+    "\\src\\test\\java",
+    "\\src\\test\\java\\com",
+    "\\src\\test\\java\\com\\ncu",
+    "\\src\\test\\java\\com\\ncu\\appstore",
+    "\\src\\test\\java\\com\\ncu\\appstore\\dao",
+    "\\src\\test\\java\\com\\ncu\\appstore\\service"
+  ],
+  "SelectedNode": "\\src\\test",
+  "PreviewInSolutionExplorer": false
+}
